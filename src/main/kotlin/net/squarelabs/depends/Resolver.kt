@@ -3,6 +3,7 @@ package net.squarelabs.depends
 import com.google.common.reflect.ClassPath
 import net.squarelabs.depends.models.Artifact
 import net.squarelabs.depends.models.Class
+import net.squarelabs.depends.models.Invocation
 import net.squarelabs.depends.models.Method
 import org.jboss.shrinkwrap.resolver.api.maven.Maven
 import org.objectweb.asm.ClassReader
@@ -14,6 +15,7 @@ import java.io.File
 import java.net.URLClassLoader
 
 var methodCount = 0
+var invocationCount = 0
 
 fun resolve(coordinate: String, cache: HashMap<String, Artifact> = HashMap()): Artifact {
     return cache.computeIfAbsent(coordinate) {
@@ -37,7 +39,7 @@ fun classesFromFile(file: File): List<Class> {
         val size = cp.topLevelClasses.size
         cp.topLevelClasses.mapIndexed { index, clazz ->
             val methods = methodsFromClass(clazz, it)
-            if(index % 1000 == 0) println("$methodCount class $index / $size is ${clazz.name}")
+            if(index % 1000 == 0) println("$methodCount methods and $invocationCount invocations class $index / $size is ${clazz.name}")
             Class(clazz.name, methods)
         }
     }
@@ -48,15 +50,18 @@ fun methodsFromClass(clazz: ClassPath.ClassInfo, loader: URLClassLoader): List<M
     val cl = object : ClassVisitor(Opcodes.ASM7) {
         override fun visitMethod(access: Int, methodName: String,
                                  desc: String, signature: String?, exceptions: Array<String>?): MethodVisitor? {
+            val invocations = mutableListOf<Invocation>()
             val oriMv: MethodVisitor = object : MethodVisitor(Opcodes.ASM7) {}
             val instMv = object : InstructionAdapter(Opcodes.ASM7, oriMv) {
-                override fun visitMethodInsn(opcode: Int, owner: String?, name: String?, descriptor: String?, isInterface: Boolean) {
-                    methodCount++
+                override fun visitMethodInsn(opcode: Int, owner: String, name: String, descriptor: String, isInterface: Boolean) {
+                    invocationCount++
+                    invocations.add(Invocation(owner, name, descriptor))
                     //println("invoke $owner.$name from ${clazz.name}.$methodName()")
                     super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
                 }
             }
-            val method = Method(methodName, desc)
+            methodCount++
+            val method = Method(methodName, desc, invocations.toList())
             methods.add(method)
             return instMv
         }
