@@ -8,6 +8,11 @@ class ResolverTest {
     fun `resolver should resolve`() {
         val state = State()
         val root: Artifact = resolve("io.dropwizard:dropwizard-core:1.3.7", state)
-        println("artifactsByGa=${state.artifactsByGa.size}")
+        val conflicts = state.artifactsByGa.keys
+                .filter { key -> state.artifactsByGa[key]!!.size > 1 }
+                .map { key -> key + ": " + state.artifactsByGa[key]!!.keys.joinToString() }
+                .joinToString("\n")
+        println("unique artifacts: ${state.artifactsByGa.size}")
+        println("conflicts: $conflicts")
     }
 }
