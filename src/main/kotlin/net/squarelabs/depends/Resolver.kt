@@ -10,6 +10,9 @@ fun resolve(coordinate: String): Artifact {
             .asResolvedArtifact()
     assert(artifacts.size == 1)
     val artifact = artifacts[0]
-    val dependencies: List<Artifact> = artifact.dependencies.map { resolve(it.coordinate.toCanonicalForm()) }
+    val dependencies: List<Artifact> = artifact.dependencies.map {
+        println("resolving ${it.coordinate}")
+        resolve(it.coordinate.toCanonicalForm())
+    }
     return Artifact(coordinate, artifact.asFile(), dependencies)
 }
