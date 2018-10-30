@@ -8,3 +8,7 @@
 out/
 build/
 .gradle
+
+# app
+out.json
+*.swp

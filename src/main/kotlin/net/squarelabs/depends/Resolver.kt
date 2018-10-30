@@ -41,11 +41,9 @@ fun classesFromFile(file: File): List<Class> {
 
 fun methodsFromClass(clazz: ClassPath.ClassInfo, loader: URLClassLoader): List<Method> {
     val methods = mutableListOf<Method>()
-    var currentMethod: String? = null
     val cl = object : ClassVisitor(Opcodes.ASM7) {
         override fun visitMethod(access: Int, methodName: String,
                                  desc: String?, signature: String?, exceptions: Array<String>?): MethodVisitor? {
-            currentMethod = methodName
             val oriMv: MethodVisitor = object : MethodVisitor(Opcodes.ASM7) {}
             val instMv = object : InstructionAdapter(Opcodes.ASM7, oriMv) {
                 override fun visitMethodInsn(opcode: Int, owner: String?, name: String?, descriptor: String?, isInterface: Boolean) {
@@ -53,16 +51,9 @@ fun methodsFromClass(clazz: ClassPath.ClassInfo, loader: URLClassLoader): List<M
                     super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
                 }
             }
+            val method = Method(methodName)
+            methods.add(method)
             return instMv
-        }
-
-        override fun visitEnd() {
-            if(currentMethod != null) {
-                val method = Method(currentMethod!!)
-                methods.add(method)
-                currentMethod = null
-            }
-            super.visitEnd()
         }
     }
 

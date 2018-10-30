@@ -18,6 +18,7 @@ dependencies {
     compile group: 'com.google.guava', name: 'guava', version: '27.0-jre'
     compile group: 'org.ow2.asm', name: 'asm', version: '4.0'
     compile group: 'org.ow2.asm', name: 'asm-commons', version: '7.0'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.7'
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
