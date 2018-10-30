@@ -33,7 +33,7 @@ class ResolverTest {
                  * Called when a class is visited. This is the method called first
                  */
                 override fun visit(version: Int, access: Int, name: String?,
-                          signature: String?, superName: String?, interfaces: Array<String>?) {
+                                   signature: String?, superName: String?, interfaces: Array<String>?) {
                     println("Visiting class: $name")
                     println("Class Major Version: $version")
                     println("Super class: $superName")
@@ -52,7 +52,7 @@ class ResolverTest {
                  * Invoked when a class level annotation is encountered
                  */
                 override fun visitAnnotation(desc: String?,
-                                    visible: Boolean): AnnotationVisitor? {
+                                             visible: Boolean): AnnotationVisitor? {
                     println("Annotation: $desc")
                     return super.visitAnnotation(desc, visible)
                 }
@@ -69,7 +69,7 @@ class ResolverTest {
                  * When an inner class is encountered
                  */
                 override fun visitInnerClass(name: String?, outerName: String?,
-                                    innerName: String?, access: Int) {
+                                             innerName: String?, access: Int) {
                     println("Inner Class: $innerName defined in $outerName")
                     super.visitInnerClass(name, outerName, innerName, access)
                 }
@@ -78,7 +78,7 @@ class ResolverTest {
                  * When a field is encountered
                  */
                 override fun visitField(access: Int, name: String?,
-                               desc: String?, signature: String?, value: Any?): FieldVisitor? {
+                                        desc: String?, signature: String?, value: Any?): FieldVisitor? {
                     println("Field: $name $desc value:$value")
                     return super.visitField(access, name, desc, signature, value)
                 }
@@ -92,19 +92,21 @@ class ResolverTest {
                 /**
                  * When a method is encountered
                  */
-                override fun visitMethod(access: Int, name: String?,
-                                desc: String?, signature: String?, exceptions: Array<String>?): MethodVisitor? {
-                    println("Method: $name $desc")
+                override fun visitMethod(access: Int, methodName: String?,
+                                         desc: String?, signature: String?, exceptions: Array<String>?): MethodVisitor? {
+                    println("Method: $methodName $desc")
 
-                    System.out.println("\n" + name + desc)
-                    val oriMv: MethodVisitor = object : MethodVisitor(Opcodes.ASM7) { }
+                    System.out.println("\n" + methodName + desc)
+                    val oriMv: MethodVisitor = object : MethodVisitor(Opcodes.ASM7) {}
                     val instMv = object : InstructionAdapter(Opcodes.ASM7, oriMv) {
-                        override fun visitInsn(opcode: Int) {
-                            println(opcode)
-                            super.visitInsn(opcode)
+
+                        override fun visitMethodInsn(opcode: Int, owner: String?, name: String?, descriptor: String?, isInterface: Boolean) {
+                            println("invoke ${owner}.${name} from ${file.name} ${clazz.name}.${methodName}()")
+                            super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
                         }
+
                     }
-                      return instMv
+                    return instMv
                     //return super.visitMethod(access, name, desc, signature, exceptions)
                 }
 
