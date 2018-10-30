@@ -6,5 +6,5 @@ data class Artifact(
         val coordinate: String,
         val file: File,
         val dependencies: List<Artifact>,
-        val classes: List<Class>
+        val classes: Map<String,Class>
 )

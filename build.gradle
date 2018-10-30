@@ -29,3 +29,7 @@ compileKotlin {
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
+
+test {
+    maxHeapSize = "12g"
+}

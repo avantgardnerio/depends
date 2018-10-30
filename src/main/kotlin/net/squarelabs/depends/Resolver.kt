@@ -36,20 +36,23 @@ fun resolve(coordinate: String, state: State): Artifact {
     }
 }
 
-fun classesFromFile(file: File): List<Class> {
+fun classesFromFile(file: File): Map<String,Class> {
     return URLClassLoader(arrayOf(file.toURL())).use { it ->
         val cp = ClassPath.from(it)
         val size = cp.topLevelClasses.size
-        cp.topLevelClasses.mapIndexed { index, clazz ->
+        val classes = mutableMapOf<String,Class>()
+        cp.topLevelClasses.forEachIndexed { index, clazz ->
             val methods = methodsFromClass(clazz, it)
             if (index % 1000 == 0) println("$methodCount methods and $invocationCount invocations class $index / $size is ${clazz.name}")
-            Class(clazz.name, methods)
+            // assert(classes.get(clazz.name) == null) // TODO: handle duplicates /foo/bar/class vs /foo.bar/class
+            classes.put(clazz.name, Class(clazz.name, methods))
         }
+        classes.toMap()
     }
 }
 
-fun methodsFromClass(clazz: ClassPath.ClassInfo, loader: URLClassLoader): List<Method> {
-    val methods = mutableListOf<Method>()
+fun methodsFromClass(clazz: ClassPath.ClassInfo, loader: URLClassLoader): Map<String, Method> {
+    val methods = mutableMapOf<String, Method>()
     val cl = object : ClassVisitor(Opcodes.ASM7) {
         override fun visitMethod(access: Int, methodName: String,
                                  desc: String, signature: String?, exceptions: Array<String>?): MethodVisitor? {
@@ -58,14 +61,16 @@ fun methodsFromClass(clazz: ClassPath.ClassInfo, loader: URLClassLoader): List<M
             val instMv = object : InstructionAdapter(Opcodes.ASM7, oriMv) {
                 override fun visitMethodInsn(opcode: Int, owner: String, name: String, descriptor: String, isInterface: Boolean) {
                     invocationCount++
-                    invocations.add(Invocation(owner, name, descriptor))
+                    //invocations.add(Invocation(owner, name, descriptor))
                     //println("invoke $owner.$name from ${clazz.name}.$methodName()")
                     super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
                 }
             }
             methodCount++
             val method = Method(methodName, desc, invocations.toList())
-            methods.add(method)
+            val methodId = "$methodName$desc"
+            assert(methods.get(methodId) == null)
+            methods.put(methodId, method)
             return instMv
         }
     }
@@ -75,5 +80,5 @@ fun methodsFromClass(clazz: ClassPath.ClassInfo, loader: URLClassLoader): List<M
         classReader.accept(cl, 0)
     }
 
-    return methods.toList()
+    return methods.toMap()
 }
