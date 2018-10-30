@@ -13,6 +13,8 @@ import org.objectweb.asm.commons.InstructionAdapter
 import java.io.File
 import java.net.URLClassLoader
 
+var methodCount = 0
+
 fun resolve(coordinate: String, cache: HashMap<String, Artifact> = HashMap()): Artifact {
     return cache.computeIfAbsent(coordinate) {
         val artifacts = Maven.resolver()
@@ -32,8 +34,10 @@ fun resolve(coordinate: String, cache: HashMap<String, Artifact> = HashMap()): A
 fun classesFromFile(file: File): List<Class> {
     return URLClassLoader(arrayOf(file.toURL())).use { it ->
         val cp = ClassPath.from(it)
-        cp.topLevelClasses.map { clazz ->
+        val size = cp.topLevelClasses.size
+        cp.topLevelClasses.mapIndexed { index, clazz ->
             val methods = methodsFromClass(clazz, it)
+            if(index % 1000 == 0) println("$methodCount class $index / $size is ${clazz.name}")
             Class(clazz.name, methods)
         }
     }
@@ -47,6 +51,7 @@ fun methodsFromClass(clazz: ClassPath.ClassInfo, loader: URLClassLoader): List<M
             val oriMv: MethodVisitor = object : MethodVisitor(Opcodes.ASM7) {}
             val instMv = object : InstructionAdapter(Opcodes.ASM7, oriMv) {
                 override fun visitMethodInsn(opcode: Int, owner: String?, name: String?, descriptor: String?, isInterface: Boolean) {
+                    methodCount++
                     //println("invoke $owner.$name from ${clazz.name}.$methodName()")
                     super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
                 }
