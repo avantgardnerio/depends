@@ -17,19 +17,22 @@ import java.net.URLClassLoader
 var methodCount = 0
 var invocationCount = 0
 
-fun resolve(coordinate: String, cache: HashMap<String, Artifact> = HashMap()): Artifact {
-    return cache.computeIfAbsent(coordinate) {
+fun resolve(coordinate: String, state: State): Artifact {
+    val terms = coordinate.split(":")
+    val ga = state.artifactsByGa.computeIfAbsent("${terms[0]}:${terms[1]}") { mutableMapOf() }
+    val version = terms[terms.size - 1]
+    return ga.computeIfAbsent(version) { version ->
         val artifacts = Maven.resolver()
-                .resolve(it)
+                .resolve(coordinate)
                 .withoutTransitivity()
                 .asResolvedArtifact()
         assert(artifacts.size == 1)
         val artifact = artifacts[0]
         val file = artifact.asFile()
-        println("${cache.size} artifacts + ${file.absolutePath}")
+        println("${state.artifactsByGa.size} artifacts + ${file.absolutePath}")
         val classes = classesFromFile(file)
-        val dependencies = artifact.dependencies.map { resolve(it.coordinate.toCanonicalForm(), cache) }
-        Artifact(it, file, dependencies, classes)
+        val dependencies = artifact.dependencies.map { resolve(it.coordinate.toCanonicalForm(), state) }
+        Artifact(coordinate, file, dependencies, classes)
     }
 }
 
@@ -39,7 +42,7 @@ fun classesFromFile(file: File): List<Class> {
         val size = cp.topLevelClasses.size
         cp.topLevelClasses.mapIndexed { index, clazz ->
             val methods = methodsFromClass(clazz, it)
-            if(index % 1000 == 0) println("$methodCount methods and $invocationCount invocations class $index / $size is ${clazz.name}")
+            if (index % 1000 == 0) println("$methodCount methods and $invocationCount invocations class $index / $size is ${clazz.name}")
             Class(clazz.name, methods)
         }
     }
