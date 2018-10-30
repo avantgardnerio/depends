@@ -43,7 +43,7 @@ fun methodsFromClass(clazz: ClassPath.ClassInfo, loader: URLClassLoader): List<M
     val methods = mutableListOf<Method>()
     val cl = object : ClassVisitor(Opcodes.ASM7) {
         override fun visitMethod(access: Int, methodName: String,
-                                 desc: String?, signature: String?, exceptions: Array<String>?): MethodVisitor? {
+                                 desc: String, signature: String?, exceptions: Array<String>?): MethodVisitor? {
             val oriMv: MethodVisitor = object : MethodVisitor(Opcodes.ASM7) {}
             val instMv = object : InstructionAdapter(Opcodes.ASM7, oriMv) {
                 override fun visitMethodInsn(opcode: Int, owner: String?, name: String?, descriptor: String?, isInterface: Boolean) {
@@ -51,7 +51,7 @@ fun methodsFromClass(clazz: ClassPath.ClassInfo, loader: URLClassLoader): List<M
                     super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
                 }
             }
-            val method = Method(methodName)
+            val method = Method(methodName, desc)
             methods.add(method)
             return instMv
         }
