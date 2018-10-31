@@ -19,7 +19,7 @@ var invocationCount = 0
 
 fun resolve(coordinate: String, state: State): Artifact {
     val terms = coordinate.split(":")
-    val ga = state.artifactsByGa.computeIfAbsent("${terms[0]}:${terms[1]}") { mutableMapOf() }
+    val ga = state.artifactsByGa.computeIfAbsent("${terms[0]}:${terms[1]}") { HashMap() }
     val version = terms[terms.size - 1]
     return ga.computeIfAbsent(version) { version ->
         val artifacts = Maven.resolver()
@@ -56,21 +56,21 @@ fun methodsFromClass(clazz: ClassPath.ClassInfo, loader: URLClassLoader): Map<St
     val cl = object : ClassVisitor(Opcodes.ASM7) {
         override fun visitMethod(access: Int, methodName: String,
                                  desc: String, signature: String?, exceptions: Array<String>?): MethodVisitor? {
-            val invocations = mutableListOf<Invocation>()
+            val method = Method(methodName, desc)
+            val methodId = "$methodName$desc"
+            assert(methods[methodId] == null)
+            methods[methodId] = method
+
             val oriMv: MethodVisitor = object : MethodVisitor(Opcodes.ASM7) {}
             val instMv = object : InstructionAdapter(Opcodes.ASM7, oriMv) {
                 override fun visitMethodInsn(opcode: Int, owner: String, name: String, descriptor: String, isInterface: Boolean) {
                     invocationCount++
-                    //invocations.add(Invocation(owner, name, descriptor))
+                    method.invocations.add(Invocation(owner, name, descriptor))
                     //println("invoke $owner.$name from ${clazz.name}.$methodName()")
                     super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
                 }
             }
             methodCount++
-            val method = Method(methodName, desc, invocations.toList())
-            val methodId = "$methodName$desc"
-            assert(methods[methodId] == null)
-            methods[methodId] = method
             return instMv
         }
     }

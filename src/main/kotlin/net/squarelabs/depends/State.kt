@@ -3,6 +3,6 @@ package net.squarelabs.depends
 import net.squarelabs.depends.models.Artifact
 
 data class State(
-        val artifactsByGa: MutableMap<String, MutableMap<String, Artifact>> = mutableMapOf(),
-        val artifactsByMethod: MutableMap<String, MutableSet<String>> = mutableMapOf()
+        val artifactsByGa: HashMap<String, HashMap<String, Artifact>> = HashMap(),
+        val artifactsByMethod: HashMap<String, HashSet<String>> = HashMap()
 )
