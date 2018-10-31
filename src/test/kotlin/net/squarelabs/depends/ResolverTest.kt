@@ -19,8 +19,11 @@ class ResolverTest {
         println("conflicts:\n\t $conflicts")
 
         // find removals
-        state.artifactsByGa.keys
+        val removedMethods = state.artifactsByGa.keys
                 .filter { key -> state.artifactsByGa[key]!!.size > 1 }
+                .map { key -> state.artifactsByGa[key]!!.values }
+                .flatMap { artifacts -> removedMethods(artifacts) }
+        println("methods removed: ${removedMethods.size}")
 
         // print memory
         Runtime.getRuntime().gc()
