@@ -74,7 +74,7 @@ fun methodsFromClass(stream: InputStream): Map<String, Method> {
             val instMv = object : InstructionAdapter(Opcodes.ASM7, oriMv) {
                 override fun visitMethodInsn(opcode: Int, owner: String, name: String, descriptor: String, isInterface: Boolean) {
                     invocationCount++
-                    method.invocations.add(Invocation(owner, name, descriptor))
+                    method.invocations.add(Invocation(owner.replace("/", "."), name, descriptor))
                     //println("invoke $owner.$name from ${clazz.name}.$methodName()")
                     super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
                 }

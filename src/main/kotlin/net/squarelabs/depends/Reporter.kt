@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import net.squarelabs.depends.models.Artifact
 import java.io.File
 
-fun fqmns(a: Artifact): HashSet<String> = HashSet(a.classes.values.flatMap { c -> c.methods.values.map { m -> "${c.name}:${m.name}${m.descriptor}" } })
+fun fqmns(a: Artifact): HashSet<String> = HashSet(a.classes.values.flatMap { c -> c.methods.values.map { m -> "${c.name}.${m.name}${m.descriptor}" } })
 
 fun allMethods(artifacts: Collection<Artifact>): HashSet<String> {
     val reducer = { acc: HashSet<String>, cur: Artifact ->
@@ -40,7 +40,7 @@ fun apiMethods(state: State): Set<String> {
             artifact.classes.values.forEach { clazz ->
                 clazz.methods.values.forEach { method ->
                     method.invocations.forEach { call ->
-                        val callee = "${call.fqcn.replace("/", ".")}.${call.methodName}${call.descriptor}"
+                        val callee = "${call.fqcn}.${call.methodName}${call.descriptor}"
                         //println("${state.artifactsByMethod.size} callee: $callee example: ${state.artifactsByMethod.keys.first()}")
                         val providers:MutableSet<String>? = state.artifactsByMethod.get(callee)
                         if(providers != null) {
