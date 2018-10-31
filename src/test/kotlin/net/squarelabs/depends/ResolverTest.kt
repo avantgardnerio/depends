@@ -11,12 +11,13 @@ class ResolverTest {
         println("Used mem: ${DecimalFormat("#,##0").format(runtime.totalMemory() - runtime.freeMemory())}")
         val state = State()
         val root: Artifact = resolve("io.dropwizard:dropwizard-core:1.3.7", state)
+        populateIndices(state)
         val conflicts = state.artifactsByGa.keys
                 .filter { key -> state.artifactsByGa[key]!!.size > 1 }
                 .map { key -> key + ": " + state.artifactsByGa[key]!!.keys.joinToString() }
                 .joinToString(separator = "\n\t")
         println("unique artifacts: ${state.artifactsByGa.size}")
-        println("conflicts:\n\t $conflicts")
+        println("conflicts:\n\t$conflicts")
 
         // find removals
         val removedMethods = state.artifactsByGa.keys

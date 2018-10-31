@@ -45,7 +45,7 @@ fun classesFromFile(file: File): Map<String,Class> {
             val methods = methodsFromClass(clazz, it)
             if (index % 1000 == 0) println("$methodCount methods and $invocationCount invocations class $index / $size is ${clazz.name}")
             // assert(classes.get(clazz.name) == null) // TODO: handle duplicates /foo/bar/class vs /foo.bar/class
-            classes.put(clazz.name, Class(clazz.name, methods))
+            classes[clazz.name] = Class(clazz.name, methods)
         }
         classes.toMap()
     }
@@ -69,8 +69,8 @@ fun methodsFromClass(clazz: ClassPath.ClassInfo, loader: URLClassLoader): Map<St
             methodCount++
             val method = Method(methodName, desc, invocations.toList())
             val methodId = "$methodName$desc"
-            assert(methods.get(methodId) == null)
-            methods.put(methodId, method)
+            assert(methods[methodId] == null)
+            methods[methodId] = method
             return instMv
         }
     }

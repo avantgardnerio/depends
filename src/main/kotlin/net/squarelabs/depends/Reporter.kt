@@ -26,3 +26,18 @@ fun removedMethods(artifacts: Collection<Artifact>): Set<String> {
     accumulator.removeAll(common)
     return accumulator
 }
+
+fun populateIndices(state: State) {
+    state.artifactsByGa.values.forEach { artifacts ->
+        artifacts.values.forEach { artifact ->
+            println("indexing artifact: ${artifact.coordinate}")
+            artifact.classes.values.forEach { c ->
+                c.methods.keys.forEach { m ->
+                    val fqmn = "${c.name}:$m"
+                    val methodProviders = state.artifactsByMethod.computeIfAbsent(fqmn) { mutableSetOf() }
+                    methodProviders.add(artifact.coordinate)
+                }
+            }
+        }
+    }
+}
