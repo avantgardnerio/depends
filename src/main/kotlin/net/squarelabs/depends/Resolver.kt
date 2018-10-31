@@ -5,6 +5,7 @@ import net.squarelabs.depends.models.Artifact
 import net.squarelabs.depends.models.Class
 import net.squarelabs.depends.models.Invocation
 import net.squarelabs.depends.models.Method
+import org.apache.commons.io.FilenameUtils
 import org.jboss.shrinkwrap.resolver.api.maven.Maven
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
@@ -12,7 +13,11 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.commons.InstructionAdapter
 import java.io.File
+import java.io.FileInputStream
+import java.io.InputStream
 import java.net.URLClassLoader
+import java.util.zip.ZipFile
+import java.util.zip.ZipInputStream
 
 var methodCount = 0
 var invocationCount = 0
@@ -37,21 +42,25 @@ fun resolve(coordinate: String, state: State): Artifact {
 }
 
 fun classesFromFile(file: File): Map<String,Class> {
-    return URLClassLoader(arrayOf(file.toURL())).use { it ->
-        val cp = ClassPath.from(it)
-        val size = cp.topLevelClasses.size
-        val classes = mutableMapOf<String,Class>()
-        cp.topLevelClasses.forEachIndexed { index, clazz ->
-            val methods = methodsFromClass(clazz, it)
-            if (index % 1000 == 0) println("$methodCount methods and $invocationCount invocations class $index / $size is ${clazz.name}")
-            // assert(classes.get(clazz.name) == null) // TODO: handle duplicates /foo/bar/class vs /foo.bar/class
-            classes[clazz.name] = Class(clazz.name, methods)
+    val classes = mutableMapOf<String,Class>()
+    ZipFile(file).use { zipFile ->
+        zipFile.stream().forEach { entry ->
+            val ext = FilenameUtils.getExtension(entry.name)
+            if(ext == "class") {
+                val packageName = FilenameUtils.getPath(entry.name).replace("/", ".")
+                val className = FilenameUtils.getBaseName(entry.name)
+                val fqcn = "$packageName$className"
+                zipFile.getInputStream(entry).use { stream ->
+                    val methods = methodsFromClass(stream)
+                    classes[fqcn] = Class(fqcn, methods)
+                }
+            }
         }
-        classes.toMap()
     }
+    return classes.toMap()
 }
 
-fun methodsFromClass(clazz: ClassPath.ClassInfo, loader: URLClassLoader): Map<String, Method> {
+fun methodsFromClass(stream: InputStream): Map<String, Method> {
     val methods = mutableMapOf<String, Method>()
     val cl = object : ClassVisitor(Opcodes.ASM7) {
         override fun visitMethod(access: Int, methodName: String,
@@ -75,10 +84,8 @@ fun methodsFromClass(clazz: ClassPath.ClassInfo, loader: URLClassLoader): Map<St
         }
     }
 
-    loader.getResourceAsStream(clazz.resourceName).use { stream ->
-        val classReader = ClassReader(stream)
-        classReader.accept(cl, 0)
-    }
+    val classReader = ClassReader(stream)
+    classReader.accept(cl, 0)
 
     return methods.toMap()
 }
