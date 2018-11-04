@@ -35,3 +35,13 @@ compileTestKotlin {
 test {
     maxHeapSize = "12g"
 }
+
+jar {
+    manifest {
+        attributes "Main-Class": "net.squarelabs.depends.ReporterKt"
+    }
+
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
