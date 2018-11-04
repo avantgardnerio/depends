@@ -3,7 +3,36 @@ package net.squarelabs.depends
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import net.squarelabs.depends.models.Artifact
+
+import picocli.CommandLine
+import picocli.CommandLine.Option
+import picocli.CommandLine.Parameters
 import java.io.File
+
+@CommandLine.Command(name = "depends", mixinStandardHelpOptions = true)
+class Example : Runnable {
+    @Option(
+            names = arrayOf("-v", "--verbose"),
+            description = arrayOf("Verbose mode." + "Multiple -v options increase the verbosity.")
+    )
+    private val verbose = BooleanArray(0)
+
+    @Parameters(arity = "1", paramLabel = "COORDINATE", description = arrayOf("Root coordinate to resolve"))
+    private var coordinate: String? = null
+
+    override fun run() {
+        if (verbose.size > 0) {
+            println("Resolving ${coordinate!!}...")
+        }
+        val state = State()
+        val root: Artifact = resolve("io.dropwizard:dropwizard-core:1.3.7", state)
+        populateIndices(state)
+    }
+}
+
+fun main(args: Array<String>) {
+    CommandLine.run(Example(), *args)
+}
 
 fun fqmns(a: Artifact): HashSet<String> = HashSet(a.classes.values.flatMap { c -> c.methods.values.map { m -> "${c.name}.${m.name}${m.descriptor}" } })
 
