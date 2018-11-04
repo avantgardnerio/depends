@@ -60,3 +60,10 @@ Then pick a version from the list!
 1. It filters these by a given search term.
 1. Finally, it prints a report to help you figure out which version to use when a dependency conflict arrises.
 
+## Roadmap
+
+1. Count all the broken calls, and recommend the version of each library most likely to not have missing method exceptions at run time.
+1. Produce a report to name-and-shame [semver](https://semver.org/) violations.
+1. Convert this project into a [Gradle ResolutionStrategy](https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.ResolutionStrategy.html) so it Just Works.
+
+   
