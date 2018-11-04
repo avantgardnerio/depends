@@ -49,3 +49,14 @@ broken apis:
 ```
 
 Then pick a version from the list!
+
+## How it works
+
+1. It uses [ShrinkWrap Resolver](http://arquillian.org/modules/resolver-shrinkwrap/) to build a dependency graph of your project.
+1. It scans through the classes in each jar and uses [ASM4](https://asm.ow2.io/) to find function invocations.
+1. It builds a map of all cross-module function calls.
+1. It assumes any function called from an external module is a public API.
+1. It compares all the versions of each module to see which methods are not present in all versions.
+1. It filters these by a given search term.
+1. Finally, it prints a report to help you figure out which version to use when a dependency conflict arrises.
+
