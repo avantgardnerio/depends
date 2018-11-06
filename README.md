@@ -27,7 +27,7 @@ Then spent hours trying different versions of dependencies until it magically go
 Just run: 
 
 ```
-java -jar depends.jar com.mycompany.app:my-app:1.0-SNAPSHOT --filter=JsonParseException
+java -jar build/libs/depends-1.0-SNAPSHOT.jar com.mycompany.app:my-app:1.0-SNAPSHOT --filter=JsonParseException
 ```
 
 And get a helpful report of what's broken:
@@ -49,6 +49,11 @@ broken apis:
 ```
 
 Then pick a version from the list!
+
+## Building
+
+1. `git clone https://github.com/bgard6977/depends.git`
+1. `./gradlew build`
 
 ## How it works
 
