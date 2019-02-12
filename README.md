@@ -53,10 +53,10 @@ Then pick a version from the list!
 ## Building
 ```bash
 git clone https://github.com/bgard6977/depends.git
-cd dependes
+cd depends
 ./gradlew build
 # This will create depends.jar
-# Now, You'll need to run mvn install or gradle install on your project, to put build your code and put the resulting jar into your maven/gradle local cache. 
+# Now, You'll need to run mvn install or gradle install on your project, to build your code and put the resulting jar into your maven/gradle local cache. 
 # After you've done artifact install, you can run depends on it like that:
 java -jar build/libs/depends-1.0-SNAPSHOT.jar com.mycompany.app:my-app:1.0-SNAPSHOT --filter=JsonParseException
 # com.mycompany.app:my-app:1.0-SNAPSHOT is the artifact you want to check.
